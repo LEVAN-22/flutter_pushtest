@@ -14,6 +14,7 @@ class Message extends StatefulWidget {
 
 class _MessageState extends State<Message> {
   Map payload = {};
+
   @override
   Widget build(BuildContext context) {
     final data = ModalRoute.of(context)!.settings.arguments;

@@ -10,42 +10,55 @@ import 'home.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
-// function to listen to back changes
+// Function to handle background messages
 Future _firebaseBackgroundMessage(RemoteMessage message) async {
   if (message.notification != null) {
-    print("some notification Recevied");
+    print("Notification received in the back");
   }
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
-  // on back notifi tapped
+  // Initialize Firebase and handle potential errors
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("Firebase initialized successfully");
+  } catch (e) {
+    print("Error initializing Firebase: $e");
+  }
+
+  // Handle notification taps when the app is in the background
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     if (message.notification != null) {
-      print("Background Notifi Tapped!");
+      print("Notification tapped in the back");
       navigatorKey.currentState!.pushNamed("/message", arguments: message);
     }
   });
 
-  PushNotifications.intt();
-  PushNotifications.localNotiInit();
+  // Initialize push notifications and handle errors
+  try {
+    await PushNotifications.init();
+    await PushNotifications.localNotiInit();
+    print("Push notifications initialized successfully");
+  } catch (e) {
+    print("Error initializing push notifications: $e");
+  }
 
-  // listen to back notifi
+  // Listen for background notifications
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
 
-  // to handle fore notifi
+  // Handle notifications when the app is in the foreground
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    String PayloadData = jsonEncode(message.data);
-    print("got a message in fore");
+    String payloadData = jsonEncode(message.data);
+    print("Notification received in the fore");
     if (message.notification != null) {
       PushNotifications.showSimpleNotification(
           title: message.notification!.title!,
           body: message.notification!.body!,
-          payload: PayloadData);
+          payload: payloadData);
     }
   });
   runApp(const MyApp());

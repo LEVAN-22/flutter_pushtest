@@ -7,51 +7,60 @@ class PushNotifications {
   static final FlutterLocalNotificationsPlugin
       _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  // request notifi permission
-  static Future intt() async {
-    await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+  // Request notification permission
+  static Future init() async {
+    try {
+      await _firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: true,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
-    // fetch the FCM Token for this device
-    final token = await _firebaseMessaging.getToken();
-    print('Token: $token');
+      // Fetch the FCM Token for this device
+      final token = await _firebaseMessaging.getToken();
+      print('Token: $token');
+    } catch (e) {
+      print("Error requesting notification permission: $e");
+    }
   }
 
-  // initialize the local notifications
+  // Initialize local notifications
   static Future localNotiInit() async {
-    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
-      onDidReceiveLocalNotification: (id, title, body, payload) => null,
-    );
-    final LinuxInitializationSettings initializationSettingsLinux =
-        LinuxInitializationSettings(defaultActionName: 'Open notification');
-    final InitializationSettings initializationSettings =
-        InitializationSettings(
-            android: initializationSettingsAndroid,
-            iOS: initializationSettingsDarwin,
-            linux: initializationSettingsLinux);
-    _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onDidReceiveNotificationResponse: onNotificationTap,
-        onDidReceiveBackgroundNotificationResponse: onNotificationTap);
+    try {
+      // Initialize the plugin. app_icon needs to be added as a drawable resource to the Android head project
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      final DarwinInitializationSettings initializationSettingsDarwin =
+          DarwinInitializationSettings(
+        onDidReceiveLocalNotification: (id, title, body, payload) => null,
+      );
+      final LinuxInitializationSettings initializationSettingsLinux =
+          LinuxInitializationSettings(defaultActionName: 'Open notification');
+      final InitializationSettings initializationSettings =
+          InitializationSettings(
+              android: initializationSettingsAndroid,
+              iOS: initializationSettingsDarwin,
+              linux: initializationSettingsLinux);
+      await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
+          onDidReceiveNotificationResponse: onNotificationTap,
+          onDidReceiveBackgroundNotificationResponse: onNotificationTap);
+      print("Local notifications initialized successfully");
+    } catch (e) {
+      print("Error initializing local notifications: $e");
+    }
   }
 
-  // on tap lacal notifi in foreground
-  static void onNotificationTap(NotificationResponse notficationResponese) {
+  // Handle notification tap in the foreground
+  static void onNotificationTap(NotificationResponse notificationResponse) {
     navigatorKey.currentState!
-        .pushNamed("/message", arguments: notficationResponese);
+        .pushNamed("/message", arguments: notificationResponse);
   }
 
-  // show a simple notification
+  // Show a simple notification
   static Future showSimpleNotification({
     required String title,
     required String body,
